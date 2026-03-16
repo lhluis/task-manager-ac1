@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<h1>Task Manager</h1>
+
+<form method="POST" action="/add">
+<input name="title" placeholder="Nova tarefa">
+<button type="submit">Adicionar</button>
+</form>
+
+<h2>Tarefas</h2>
+
+<ul>
+{% for task in tasks %}
+<li>{{task.title}}</li>
+{% endfor %}
+</ul>
+
+</body>
+</html>
