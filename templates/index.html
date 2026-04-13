@@ -24,12 +24,9 @@
         <span class="task-title">{{ task.title }}</span>
 
         <div class="task-actions">
-            <!-- Botão Editar -->
             <a href="/edit/{{ loop.index0 }}" class="btn-edit" title="Editar tarefa">
                 ✏️
             </a>
-
-            <!-- Botão Excluir -->
             <form method="POST" action="/delete/{{ loop.index0 }}"
                   onsubmit="return confirm('Deseja excluir esta tarefa?')">
                 <button type="submit" class="btn-delete" title="Excluir tarefa">
