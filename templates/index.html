@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 
 <head>
     <title>Task Manager</title>
@@ -12,16 +12,33 @@
 <h1>Task Manager</h1>
 
 <form method="POST" action="/add">
-<input name="title" placeholder="Nova tarefa">
-<button type="submit">Adicionar</button>
+    <input name="title" placeholder="Nova tarefa" required>
+    <button type="submit">Adicionar</button>
 </form>
 
 <h2>Tarefas</h2>
 
 <ul>
-{% for task in tasks %}
-<li>{{task.title}}</li>
-{% endfor %}
+    {% for task in tasks %}
+    <li>
+        <span class="task-title">{{ task.title }}</span>
+
+        <div class="task-actions">
+            <!-- Botão Editar -->
+            <a href="/edit/{{ loop.index0 }}" class="btn-edit" title="Editar tarefa">
+                ✏️
+            </a>
+
+            <!-- Botão Excluir -->
+            <form method="POST" action="/delete/{{ loop.index0 }}"
+                  onsubmit="return confirm('Deseja excluir esta tarefa?')">
+                <button type="submit" class="btn-delete" title="Excluir tarefa">
+                    🗑️
+                </button>
+            </form>
+        </div>
+    </li>
+    {% endfor %}
 </ul>
 
 </body>
