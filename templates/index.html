@@ -18,9 +18,32 @@
 
 <h2>Tarefas</h2>
 
+{% if tasks %}
+<div class="task-counter">
+    <span class="counter-text">{{ done_count }} de {{ tasks | length }} tarefas concluídas</span>
+    <div class="progress-bar">
+        <div class="progress-fill" data-progress="{{ progress }}"></div>
+    </div>
+</div>
+{% endif %}
+
 <ul>
     {% for task in tasks %}
-    <li>
+    <li class="{% if task.done %}task-done{% endif %}">
+        <!-- Botão Concluir -->
+        <form method="POST" action="/toggle/{{ loop.index0 }}" class="toggle-form">
+            <button type="submit" class="btn-toggle {% if task.done %}checked{% endif %}"
+                    title="{% if task.done %}Desmarcar tarefa{% else %}Marcar como concluída{% endif %}">
+                {% if task.done %}
+                    <span class="toggle-icon">✓</span>
+                    <span class="toggle-text">Feito</span>
+                {% else %}
+                    <span class="toggle-icon">○</span>
+                    <span class="toggle-text">Concluir</span>
+                {% endif %}
+            </button>
+        </form>
+
         <span class="task-title">{{ task.title }}</span>
 
         <div class="task-actions">
@@ -40,6 +63,62 @@
     </li>
     {% endfor %}
 </ul>
+
+<script>
+    // Define a largura inicial da barra de progresso (vinda do servidor)
+    document.querySelectorAll('.progress-fill').forEach(function (bar) {
+        bar.style.width = bar.dataset.progress + '%';
+    });
+
+    // HTML interno do botão (não-concluída / concluída)
+    var TOGGLE_HTML = {
+        undone: '<span class="toggle-icon">○</span><span class="toggle-text">Concluir</span>',
+        done:   '<span class="toggle-icon">✓</span><span class="toggle-text">Feito</span>'
+    };
+
+    // Intercepta o submit de cada botão de concluir e usa fetch (sem reload)
+    document.querySelectorAll('.toggle-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                var li = form.closest('li');
+                var button = form.querySelector('.btn-toggle');
+
+                if (data.done) {
+                    li.classList.add('task-done');
+                    button.classList.add('checked');
+                    button.innerHTML = TOGGLE_HTML.done;
+                    button.title = 'Desmarcar tarefa';
+                } else {
+                    li.classList.remove('task-done');
+                    button.classList.remove('checked');
+                    button.innerHTML = TOGGLE_HTML.undone;
+                    button.title = 'Marcar como concluída';
+                }
+
+                // Atualiza contador e barra de progresso
+                var counter = document.querySelector('.counter-text');
+                var progressBar = document.querySelector('.progress-fill');
+                if (counter) {
+                    counter.textContent = data.done_count + ' de ' + data.total + ' tarefas concluídas';
+                }
+                if (progressBar) {
+                    progressBar.style.width = data.progress + '%';
+                }
+            })
+            .catch(function () {
+                // Fallback: se o fetch falhar, faz submit normal
+                form.submit();
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

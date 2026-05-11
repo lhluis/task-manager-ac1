@@ -9,9 +9,14 @@ DB = "tasks.json"
 def load_tasks():
     try:
         with open(DB, "r") as f:
-            return json.load(f)
+            tasks = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return []
+
+    for task in tasks:
+        task.setdefault("done", False)
+
+    return tasks
 
 
 def save_tasks(tasks):
@@ -22,7 +27,9 @@ def save_tasks(tasks):
 @app.route("/")
 def index():
     tasks = load_tasks()
-    return render_template("index.html", tasks=tasks)
+    done_count = sum(1 for task in tasks if task.get("done"))
+    progress = round(done_count / len(tasks) * 100) if tasks else 0
+    return render_template("index.html", tasks=tasks, done_count=done_count, progress=progress)
 
 
 @app.route("/add", methods=["POST"])
@@ -31,8 +38,32 @@ def add_task():
     title = request.form["title"].strip()
 
     if title:
-        tasks.append({"title": title})
+        tasks.append({"title": title, "done": False})
         save_tasks(tasks)
+
+    return redirect("/")
+
+
+@app.route("/toggle/<int:task_id>", methods=["POST"])
+def toggle_task(task_id):
+    tasks = load_tasks()
+    new_done = False
+
+    if 0 <= task_id < len(tasks):
+        tasks[task_id]["done"] = not tasks[task_id].get("done", False)
+        new_done = tasks[task_id]["done"]
+        save_tasks(tasks)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        done_count = sum(1 for task in tasks if task.get("done"))
+        total = len(tasks)
+        progress = round(done_count / total * 100) if total else 0
+        return {
+            "done": new_done,
+            "done_count": done_count,
+            "total": total,
+            "progress": progress,
+        }
 
     return redirect("/")
 
